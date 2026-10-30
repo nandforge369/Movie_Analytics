@@ -22,16 +22,12 @@ movies_q = text("""SELECT * FROM Movies;""")
 genres_q = text("""SELECT * FROM Genres;""")
 movie_genres_q = text("""SELECT * FROM Movie_Genres;""")
 cast_q = text("""SELECT * FROM Cast;""")
-crew_q = text("""SELECT * FROM Crew;""")
-movie_keywords_q = text("""SELECT * FROM Movie_Keywords;""")
 
 with engine.connect() as connection:
     movies = pd.read_sql(movies_q,connection)
     genres = pd.read_sql(genres_q,connection)
     movie_genres = pd.read_sql(movie_genres_q,connection)
     cast = pd.read_sql(cast_q,connection)
-    crew = pd.read_sql(crew_q,connection)
-    movie_keywords = pd.read_sql(movie_keywords_q,connection)
 
 movies["Release_Date_yr"] = pd.to_datetime(movies["Release_Date"]).dt.year
 hero_image, hero_content = st.columns([1, 2])
@@ -134,72 +130,106 @@ if selected == "Filter":
         )
 elif selected == "Dashboard":
     st.markdown("</br></br>",unsafe_allow_html=True)
-    selected_genres = st.session_state["selected_genres"]
-    selected_year = st.session_state["selected_year"]
-    selected_language = st.session_state["selected_language"]
-    
-    col1, col2, col3, col4 = st.columns(4)
-    data_under_current_filter = temp[(temp["Genres_name"].isin(selected_genres)) & (temp["Release_Date_yr"]==selected_year) & (temp["Original_Language"]==reverse_language_map[selected_language])]
-    st.markdown("""
-    <style>
+    try:
+        selected_genres = st.session_state["selected_genres"]
+        selected_year = st.session_state["selected_year"]
+        selected_language = st.session_state["selected_language"]
+        data_under_current_filter = temp[(temp["Genres_name"].isin(selected_genres)) & (temp["Release_Date_yr"]==selected_year) & (temp["Original_Language"]==reverse_language_map[selected_language])]
+        col1, col2, col3, col4 = st.columns(4)
+        st.markdown("""
+        <style>
 
-        div[data-testid="stMetric"] {
-            background-color: #000000;
-            border: 2px solid #e1e1e1;
-            border-radius: 0.5rem;
-            padding: 1rem 0.9rem;
-            height: 6.875rem;
-            box-sizing: border-box;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+            div[data-testid="stMetric"] {
+                background-color: #000000;
+                border: 2px solid #e1e1e1;
+                border-radius: 0.5rem;
+                padding: 1rem 0.9rem;
+                height: 6.875rem;
+                box-sizing: border-box;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
 
-        div[data-testid="stMetric"]:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            border-color: #999999;
-        }
+            div[data-testid="stMetric"]:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                border-color: #999999;
+            }
 
-        div[data-testid="stMetricLabel"] {
-            color: #FFFFFF;
-            font-size: 1rem;
-        }
+            div[data-testid="stMetricLabel"] {
+                color: #FFFFFF;
+                font-size: 1rem;
+            }
 
-        div[data-testid="stMetricValue"] {
-            color: #FFFFFF;
-            font-size: 1.3rem;
-            font-weight: 400;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-    with col1:
-        st.metric("Total Movies", data_under_current_filter["Movie_ID"].nunique())
-    with col2:
-        st.metric("Total Genres", data_under_current_filter["Genre_ID"].nunique())
-    with col3:
-        temp_actors=data_under_current_filter.merge(cast,on="Movie_ID",how="inner")
-        st.metric("Total Actors",temp_actors["Person_ID"].nunique())
-    with col4:
-        st.metric("Average Rating",round(data_under_current_filter["Vote_Average"].mean(),3))
+            div[data-testid="stMetricValue"] {
+                color: #FFFFFF;
+                font-size: 1.3rem;
+                font-weight: 400;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        with col1:
+            st.metric("Total Movies", data_under_current_filter["Movie_ID"].nunique())
+        with col2:
+            st.metric("Total Genres", data_under_current_filter["Genre_ID"].nunique())
+        with col3:
+            temp_actors=data_under_current_filter.merge(cast,on="Movie_ID",how="inner")
+            st.metric("Total Actors",temp_actors["Person_ID"].nunique())
+        with col4:
+            st.metric("Average Rating",round(data_under_current_filter["Vote_Average"].mean(),3))
 
-    top_10_movie_by_revenue = data_under_current_filter.sort_values(by="Revenue", ascending=False).head(10)
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sns.barplot(data=top_10_movie_by_revenue,x="Title",y="Revenue",ax=ax)
-    ax.set_title("Top 10 Movies by Revenue")
-    ax.set_xlabel("Movie Title")
-    ax.set_ylabel("Revenue")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    st.pyplot(fig)
+        top_10_movie_by_revenue = data_under_current_filter.sort_values(by="Revenue", ascending=False).head(10)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        sns.barplot(data=top_10_movie_by_revenue,x="Title",y="Revenue",ax=ax)
+        ax.set_title("Top 10 Movies by Revenue")
+        ax.set_xlabel("Movie Title")
+        ax.set_ylabel("Revenue")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        st.pyplot(fig)
 
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.pie(data_under_current_filter["Genres_name"].value_counts(),labels=data_under_current_filter["Genres_name"].unique(),autopct="%1.1f%%",startangle=90,pctdistance=0.75)
-    ax.set_title("Genre Distribution of Filtered Movies")
-    st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ax.pie(data_under_current_filter["Genres_name"].value_counts(),labels=data_under_current_filter["Genres_name"].unique(),autopct="%1.1f%%",startangle=90,pctdistance=0.75)
+        ax.set_title("Genre Distribution of Filtered Movies")
+        st.pyplot(fig)
 
-    fig, ax = plt.subplots(figsize=(12, 8))
-    sns.scatterplot(data_under_current_filter,x="Budget",y="Revenue",ax=ax)
-    ax.set_title("Scatter plot of Budget V/S Revenue")
-    st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.scatterplot(data_under_current_filter,x="Budget",y="Revenue",ax=ax)
+        ax.set_title("Scatter plot of Budget V/S Revenue")
+        st.pyplot(fig)
+
+        df = data_under_current_filter
+
+        if not df.empty:
+
+            total_movies = df["Movie_ID"].nunique()
+            highest_movie = df.loc[df["Revenue"].idxmax()]
+            genre_revenue = df.groupby("Genres_name")["Revenue"].sum()
+            highest_genre = genre_revenue.idxmax()
+            popular_movie = df.loc[df["Popularity"].idxmax()]
+            rated_movie = df.loc[df["Vote_Average"].idxmax()]
+            start_year = df["Release_Date_yr"].min()
+            end_year = df["Release_Date_yr"].max()
+
+            insight = f"""
+            The current selection contains **{total_movies} movies**, 
+            spanning releases in **{start_year}**.
+
+            **{highest_genre}** is the highest-grossing genre, while 
+            **{highest_movie['Title']}** leads the selection with revenue 
+            of **${highest_movie['Revenue']:,.0f}**.
+
+            The most popular movie is **{popular_movie['Title']}** 
+            (popularity: {popular_movie['Popularity']:.2f}), 
+            whereas **{rated_movie['Title']}** has the highest audience 
+            rating of **{rated_movie['Vote_Average']:.1f}/10**.
+            """
+
+            st.info(insight)
+
+        else:
+            st.warning("No movies found for the selected filters.")
+    except Exception as err:
+        st.warning(f"Please select the filter once again. Error : {err}",icon="⚠️")
 
 elif selected == "Query Explorer":
     q1=text("""select M.Title,M.Release_Date FROM MOVIES M INNER JOIN Movie_Genres MG ON M.Movie_ID = MG.Movie_ID  WHERE MG.Genre_ID = (SELECT Genre_ID FROM Genres WHERE UCASE(Genres_NAME) LIKE '%ACTION%') and YEAR(M.Release_Date) > 2015;""")
@@ -233,32 +263,98 @@ elif selected == "Query Explorer":
         df_q8 = pd.read_sql(q8, connection)
         df_q9 = pd.read_sql(q9, connection)
         df_q10 = pd.read_sql(q10, connection)
+
     st.subheader("Query 1")
     st.dataframe(df_q1, use_container_width=True, hide_index=True)
+    df_q1["Year"] = pd.to_datetime(df_q1["Release_Date"]).dt.year
+
+    yearly_movies = df_q1.groupby("Year").size().reset_index(name="Movie_Count")
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.barplot(data=yearly_movies, x="Year", y="Movie_Count", ax=ax)
+    ax.set_title("Action Movies Released Per Year")
+    ax.set_xlabel("Release Year")
+    ax.set_ylabel("Number of Movies")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
 
     st.subheader("Query 2")
     st.dataframe(df_q2, use_container_width=True, hide_index=True)
+    if not df_q2.empty:
+        st.markdown(f"Highest Revenue Movie is <b><i>{df_q2["Title"].head()[0]}<i></b>",unsafe_allow_html=True)
 
     st.subheader("Query 3")
     st.dataframe(df_q3, use_container_width=True, hide_index=True)
+    df_q3_melted = df_q3.melt(id_vars="Genres_Name",value_vars=["Budget Average", "Revenue Average"],var_name="Metric",value_name="Amount")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.barplot(data=df_q3_melted,x="Genres_Name",y="Amount",hue="Metric",ax=ax)
+    ax.set_title("Average Budget vs Revenue by Genre")
+    ax.set_xlabel("Genre")
+    ax.set_ylabel("Average Amount")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
 
     st.subheader("Query 4")
     st.dataframe(df_q4, use_container_width=True, hide_index=True)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(data=df_q4.sort_values("Appearance", ascending=False),x="Appearance",y="Actor_Name",ax=ax)
+    ax.set_title("Top 10 Actors by Movie Appearances")
+    ax.set_xlabel("Number of Appearances")
+    ax.set_ylabel("Actor")
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
 
     st.subheader("Query 5")
     st.dataframe(df_q5, use_container_width=True, hide_index=True)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(data=df_q5.sort_values("Movie_Count", ascending=False),x="Movie_Count",y="Person_Name",ax=ax)
+    ax.set_title("Top Directors by Number of Movies")
+    ax.set_xlabel("Number of Movies")
+    ax.set_ylabel("Director")
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
 
     st.subheader("Query 6")
     st.dataframe(df_q6, use_container_width=True, hide_index=True)
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    sns.barplot(data=df_q6.sort_values("Occurences", ascending=False),x="Occurences",y="Keyword_Name",ax=ax)
+
+    ax.set_title("Top 10 Most Frequently Used Keywords")
+    ax.set_xlabel("Occurrences")
+    ax.set_ylabel("Keyword")
+
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
 
     st.subheader("Query 7")
     st.dataframe(df_q7, use_container_width=True, hide_index=True)
+    if not df_q7.empty:
+        st.markdown(f"Total number of Movies with above-average budget but below-average revenuee <b><i>{df_q7["Title"].nunique()}<i></b>",unsafe_allow_html=True)
 
     st.subheader("Query 8")
     st.dataframe(df_q8, use_container_width=True, hide_index=True)
+    if not df_q9.empty:
+        st.markdown(f"Total number of Movies directed by Christoper Nolan are <b><i>{df_q8["Title"].nunique()}<i></b>",unsafe_allow_html=True)
 
     st.subheader("Query 9")
     st.dataframe(df_q9, use_container_width=True, hide_index=True)
+    if not df_q9.empty:
+        st.markdown(f"Highest Rated Genre (20+ Movies) is <b><i>{df_q9["Genres_Name"].iloc[0]}<i></b>",unsafe_allow_html=True)
 
     st.subheader("Query 10")
     st.dataframe(df_q10, use_container_width=True, hide_index=True)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(data=df_q10.sort_values("Keyword_Occurence", ascending=False),x="Keyword_Occurence",y="Title",ax=ax)
+    ax.set_title("Top 10 Movies by Keyword Occurrences")
+    ax.set_xlabel("Keyword Occurrences")
+    ax.set_ylabel("Movie")
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
