@@ -24,7 +24,7 @@ Appropriate markdowns are provided wherever necessary in each of the above four 
 
 The app.py file contains the multi-page Streamlit simulation which will allow the user to view and play with the data in a simpler way.
 
-There are three tabs - Filter, Dashboard and Query Explorer. 
+There are three tabs in app.py in the form of side bar - Filter, Dashboard and Query Explorer. 
 
 The filter tab has certain specific widgets using which user can select the filter they like, and, in our backend, those are pushed to session state so that the filters are preserved for session. The filter section also displays number of movies which satisfies our current filter.
 
