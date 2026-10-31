@@ -12,11 +12,11 @@ Each of the four notebooks serve a unique purpose of the project as follows :
 
 01_data_cleaning.ipynb involves Import the six provided CSV files, perform data cleaning by handling missing values and placeholders, eliminated duplicate records and orphaned entries, enforced appropriate data types, and load the cleaned datasets into the SQL database in separate tables by enforcing the same relation.
 
-02_sql_analysis.ipynb involves establishing a connection to the SQL database (in our case MYSQL), import the cleaned tables, and finally solved all 10 SQL-based analytical questions.
+02_sql_analysis.ipynb involves establishing a connection to the SQL database (in our case MYSQL), import the cleaned tables, and solved all 10 SQL-based analytical questions.
 
-03_pandas_analysis.ipynb involves Perform Pandas-based analysis to answer all 10 analytical questions, documenting each solution with a brief, meaningful insight.
+03_pandas_analysis.ipynb involves Perform Pandas-based analysis to answer all 10 analytical questions.
 
-04_visualizations.ipynb involves Univariate, bivariate, and multivariate visualizations using Matplotlib, Seaborn, and Plotly, with each visualization accompanied by a concise 2–4 sentence interpretation highlighting key findings and trends.
+04_visualizations.ipynb involves Univariate, bivariate, and multivariate visualizations using Seaborn.
 
 Appropriate markdowns are provided wherever necessary in each of the above four notebooks to aid in understanding of the logic and rationale.
 
